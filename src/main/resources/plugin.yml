@@ -1,0 +1,8 @@
+name: Dropper
+version: '${project.version}'
+main: com.devnics.dropper.DropperPlugin
+api-version: 1.19
+depend:
+  - WorldGuard
+  - WorldEdit
+commands:
