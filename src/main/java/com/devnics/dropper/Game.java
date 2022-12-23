@@ -5,13 +5,14 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -19,15 +20,18 @@ public class Game {
 
     private DropperPlugin plugin = DropperPlugin.getInstance();
     private ArrayList<UUID> players = new ArrayList<>();
+
+    private HashMap<UUID, Integer> scores = new HashMap<>();
     private String currentArena = null;
     private int currentRound = 0;
+
+    private BukkitRunnable timer = null;
 
     public void addPlayer(Player player) {
         this.players.add(player.getUniqueId());
 
         preparePlayer(player);
     }
-
     public void preparePlayer(Player player) {
         player.getInventory().clear();
         player.setGameMode(GameMode.ADVENTURE);
@@ -35,8 +39,33 @@ public class Game {
         player.setFoodLevel(20);
     }
 
+    public boolean inRegion(Block b) {
+        Set<ProtectedRegion> regions = getRegions(b);
+
+        if (regions == null) return false;
+
+        boolean toReturn = false;
+
+        for (ProtectedRegion region: regions) {
+            if (region.getId().equalsIgnoreCase(this.currentArena)) {
+                toReturn = true;
+                break;
+            } else continue;
+        }
+
+        return toReturn;
+
+    }
+
+    public List<UUID> getPlayers() {
+        return this.players;
+    }
     public void startGame(String arena) {
         this.currentArena = arena;
+        this.timer = new Timer();
+
+        this.timer.runTaskTimer(this.plugin, 20, 20);
+
         ConfigurationSection section =  this.plugin.getConfig().getConfigurationSection("arenas." + arena);
 
         Location location = section.getLocation("spawn");
@@ -66,11 +95,12 @@ public class Game {
         return this.players.contains(player.getUniqueId());
     }
 
-    public ArrayList<UUID> getPlayers() {
-        return this.players;
-    }
-
     public void fail(Player player) {
+        if (this.scores.get(player.getUniqueId()) != null) {
+            this.plugin.economy.withdrawPlayer(player, this.scores.get(player.getUniqueId()));
+        }
+        this.scores.put(player.getUniqueId(), 0);
+
         ConfigurationSection section =  this.plugin.getConfig().getConfigurationSection("arenas." + this.currentArena);
 
         Location location = section.getLocation("spawn");
@@ -79,30 +109,31 @@ public class Game {
     }
 
     public void checkObsticle(Block b, Player player) {
-        Set<ProtectedRegion> regions = getRegions(b);
 
-        if (regions == null) return;
+        if (!inRegion(b)) return;
+        if (!isStandingOnBlock(player)) return;
 
-        regions.forEach(r -> {
-            if (r.getId().equalsIgnoreCase(this.currentArena)) {
-                if (isStandingOnBlock(player)) {
-                    fail(player);
-                }
-            }
-        });
+        fail(player);
+        return;
     }
 
     public boolean isStandingOnBlock(Entity e) {
-        BoundingBox bb = e.getBoundingBox();
-        Location min = new Location(e.getWorld(), bb.getMinX(), bb.getMinY()-.01, bb.getMinZ());
-        return isStandingOnBlockNotAir(min.getBlock())
-                || isStandingOnBlockNotAir(min.add(bb.getWidthX(), 0, 0).getBlock())
-                || isStandingOnBlockNotAir(min.add(0, 0, bb.getWidthZ()).getBlock())
-                || isStandingOnBlockNotAir(min.add(-bb.getWidthX(), 0, 0).getBlock());
+        Block block1 = e.getLocation().subtract(e.getWidth() / 2, 1, e.getWidth() / 2).getBlock();
+        Block block2 = e.getLocation().subtract(-e.getWidth() / 2, 1, e.getWidth() / 2).getBlock();
+        Block block3 = e.getLocation().subtract(e.getWidth() / 2, 1, -e.getWidth() / 2).getBlock();
+        Block block4 = e.getLocation().subtract(-e.getWidth() / 2, 1, -e.getWidth() / 2).getBlock();
+
+        return isValid(block1) || isValid(block2) || isValid(block3) || isValid(block4);
     }
 
-    public boolean isStandingOnBlockNotAir(Block block) {
-        return !block.getType().isAir() && !block.getType().equals(Material.EMERALD_BLOCK);
+    public boolean isValid(Block block) {
+        return !block.getType().isAir() &&
+                !block.getType().equals(Material.EMERALD_BLOCK) &&
+                !block.getType().equals(
+                        Material.valueOf(
+                                this.plugin.getConfig().getString("arenas." + this.currentArena + ".wall")
+                        )
+                );
     }
 
     public Set<ProtectedRegion> getRegions(final Block block) {
@@ -115,20 +146,55 @@ public class Game {
         return ars.getRegions();
     }
 
-    public void succeed(Player player) {
-        ConfigurationSection section =  this.plugin.getConfig().getConfigurationSection("arenas." + this.currentArena);
-
-        Location location = section.getLocation("spawn");
+    public void succeed(Player player, Block block) {
+        Location location = this.plugin.getConfig().getLocation("arena-wait");
 
         player.teleport(location);
 
+        int points = this.plugin.getConfig().getInt("emerald-points");
+
+        if (block.getType().equals(Material.DIAMOND_BLOCK)) {
+            points = this.plugin.getConfig().getInt("diamond-points");
+        }
+
+        if (block.getType().equals(Material.IRON_BLOCK)) {
+            points = this.plugin.getConfig().getInt("iron-points");
+        }
+
+        if (this.players.contains(player.getUniqueId())) {
+            if (this.scores.get(player.getUniqueId()) != null) {
+                this.plugin.economy.withdrawPlayer(player.getName(), this.scores.get(player.getUniqueId()));
+            }
+        }
+
+        this.plugin.economy.depositPlayer(player.getName(), points);
+        this.scores.put(player.getUniqueId(), points);
+
         player.sendTitle(
-                ChatColor.GREEN + "" + ChatColor.BOLD + "You won " + ChatColor.YELLOW + Integer.toString(section.getInt("points")) + ChatColor.GREEN + " points!",
+                ChatColor.GREEN + "" + ChatColor.BOLD + "You won " + ChatColor.YELLOW + Integer.toString(points) + ChatColor.GREEN + " points!",
                 "",
                 10,
                 20 * 5,
                 20 * 5
         );
 
+
+    }
+
+    public String getNextArena() {
+
+        String nextArena = "done";
+        boolean next = false;
+
+        for (String key: this.plugin.getConfig().getConfigurationSection("arenas").getKeys(false)) {
+            if (next) {
+                nextArena = key;
+                break;
+            }
+            if (key.equalsIgnoreCase(this.currentArena)) {
+                next = true;
+            }
+        }
+        return nextArena;
     }
 }

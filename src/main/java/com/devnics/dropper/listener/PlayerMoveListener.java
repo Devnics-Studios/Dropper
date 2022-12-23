@@ -19,10 +19,10 @@ public class PlayerMoveListener implements Listener {
 
         if (!this.plugin.getGame().isPlayer(player)) return;
 
-        Block block = event.getTo().subtract(0, 1, 0).getBlock();
+        Block block = event.getTo().clone().subtract(0, 1, 0).getBlock();
 
-        if (block.getType().equals(Material.EMERALD_BLOCK)) {
-            this.plugin.getGame().succeed(player);
+        if ((block.getType().equals(Material.EMERALD_BLOCK) || block.getType().equals(Material.DIAMOND_BLOCK) || block.getType().equals(Material.IRON_BLOCK)) && this.plugin.getGame().inRegion(block)) {
+            this.plugin.getGame().succeed(player, block);
         } else {
             this.plugin.getGame().checkObsticle(block, player);
         }

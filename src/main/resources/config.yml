@@ -1,2 +1,6 @@
 waitinglobby: wait
+emerald-points: 200
+diamond-points: 100
+iron-points: 20
+arena-wait:
 arenas:
