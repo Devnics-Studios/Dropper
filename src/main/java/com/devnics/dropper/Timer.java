@@ -24,7 +24,7 @@ public class Timer extends BukkitRunnable {
                 BarStyle.SOLID
         );
 
-        for (UUID uuid: this.plugin.game.getPlayers()) {
+        for (UUID uuid: this.plugin.getGame().getPlayers()) {
             Player player = Bukkit.getPlayer(uuid);
 
             if (player == null) continue;
@@ -38,6 +38,7 @@ public class Timer extends BukkitRunnable {
 
         if (countdown == 0) {
             this.bossBar.removeAll();
+            this.plugin.getGame().nextStage();
             this.cancel();
             return;
         }

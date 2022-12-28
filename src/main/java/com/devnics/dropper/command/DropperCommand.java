@@ -5,14 +5,11 @@ import dev.triumphteam.cmd.bukkit.annotation.Permission;
 import dev.triumphteam.cmd.core.BaseCommand;
 import dev.triumphteam.cmd.core.annotation.Command;
 import dev.triumphteam.cmd.core.annotation.Default;
-import dev.triumphteam.cmd.core.annotation.Requirement;
 import dev.triumphteam.cmd.core.annotation.SubCommand;
-import dev.triumphteam.cmd.core.message.MessageKey;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
 import java.util.Set;
 
 @Command("dropper")
@@ -31,6 +28,9 @@ public class DropperCommand extends BaseCommand {
 
         this.plugin.getConfig().set("arenas." + name + ".spawn", "");
         this.plugin.getConfig().set("arenas." + name + ".wall", null);
+        this.plugin.getConfig().set("arenas." + name + ".emerald-points", 200);
+        this.plugin.getConfig().set("arenas." + name + ".diamond-points", 150);
+        this.plugin.getConfig().set("arenas." + name + ".iron-points", 100);
         this.plugin.saveConfig();
 
         player.sendMessage(
@@ -51,6 +51,20 @@ public class DropperCommand extends BaseCommand {
         );
     }
 
+    @SubCommand("setpoints")
+    public void SetPoints(CommandSender sender, String arena, Integer EmeraldPoints, Integer DiamondPoints, Integer IronPoints) {
+        this.plugin.getConfig().set("arenas." + arena + ".emerald-points", EmeraldPoints);
+        this.plugin.getConfig().set("arenas." + arena + ".diamond-points", DiamondPoints);
+        this.plugin.getConfig().set("arenas." + arena + ".iron-points", IronPoints);
+        this.plugin.saveConfig();
+        sender.sendMessage(ChatColor.GREEN + "Successfully set points.");
+    }
+
+    @SubCommand("reset")
+    public void ResetPlayer(CommandSender sender, Player target) {
+        this.plugin.getGame().reset(target);
+        this.plugin.getGame().tp(target);
+    }
     @SubCommand("join")
     public void JoinGame(CommandSender sender, Player target) {
 
