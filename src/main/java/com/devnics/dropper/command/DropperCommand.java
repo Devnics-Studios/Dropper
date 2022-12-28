@@ -13,17 +13,11 @@ import org.bukkit.entity.Player;
 import java.util.Set;
 
 @Command("dropper")
-@Permission("dropper.admin")
 public class DropperCommand extends BaseCommand {
 
     private DropperPlugin plugin = DropperPlugin.getInstance();
-
-    @Default
-    public void executor(CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "/dropper <arena> [..]");
-    }
-
     @SubCommand("createarena")
+    @Permission("dropper.admin")
     public void Arena(Player player, String name) {
 
         this.plugin.getConfig().set("arenas." + name + ".spawn", "");
@@ -40,6 +34,7 @@ public class DropperCommand extends BaseCommand {
     }
 
     @SubCommand("setarenaspawn")
+    @Permission("dropper.admin")
     public void SetArenaSpawn(Player player, String name) {
 
         this.plugin.getConfig().set("arenas." + name + ".spawn", player.getLocation());
@@ -52,6 +47,7 @@ public class DropperCommand extends BaseCommand {
     }
 
     @SubCommand("setpoints")
+    @Permission("dropper.admin")
     public void SetPoints(CommandSender sender, String arena, Integer EmeraldPoints, Integer DiamondPoints, Integer IronPoints) {
         this.plugin.getConfig().set("arenas." + arena + ".emerald-points", EmeraldPoints);
         this.plugin.getConfig().set("arenas." + arena + ".diamond-points", DiamondPoints);
@@ -61,22 +57,23 @@ public class DropperCommand extends BaseCommand {
     }
 
     @SubCommand("reset")
-    public void ResetPlayer(CommandSender sender, Player target) {
-        this.plugin.getGame().reset(target);
-        this.plugin.getGame().tp(target);
+    public void ResetPlayer(Player player) {
+        this.plugin.getGame().reset(player);
+        this.plugin.getGame().tp(player);
     }
     @SubCommand("join")
-    public void JoinGame(CommandSender sender, Player target) {
-
+    public void JoinGame(Player player) {
         String worldName = this.plugin.getConfig().getString("waitinglobby");
         World world = Bukkit.getWorld(worldName);
 
-        this.plugin.getGame().addPlayer(target);
+        this.plugin.getGame().addPlayer(player);
+        this.plugin.bossBar.addPlayer(player);
 
-        target.teleport(world.getSpawnLocation());
+        player.teleport(world.getSpawnLocation());
     }
 
     @SubCommand("setwallmaterial")
+    @Permission("dropper.admin")
     public void SetWallMaterial(Player player, String arena, Material material) {
         this.plugin.getConfig().set("arenas." + arena + ".wall", material.name());
         this.plugin.saveConfig();
@@ -88,6 +85,7 @@ public class DropperCommand extends BaseCommand {
         );
     }
     @SubCommand("start")
+    @Permission("dropper.admin")
     public void StartGame(CommandSender sender) {
         Set<String> keys = this.plugin
                 .getConfig()
@@ -100,15 +98,8 @@ public class DropperCommand extends BaseCommand {
                keys.iterator().next()
         );
     }
-
-    @SubCommand("test")
-    public void test(CommandSender sender) {
-        sender.sendMessage(
-                this.plugin.getGame().getNextArena()
-        );
-    }
-
     @SubCommand("setarenawait")
+    @Permission("dropper.admin")
     public void SetWaitArena(Player player) {
         this.plugin.getConfig().set("arena-wait", player.getLocation());
         this.plugin.saveConfig();

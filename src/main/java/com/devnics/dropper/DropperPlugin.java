@@ -26,6 +26,8 @@ public class DropperPlugin extends JavaPlugin {
     @Setter
     public Game game;
 
+    public BossBar bossBar = null;
+
     WorldGuardPlugin worldGuard;
     WorldGuard wg = WorldGuard.getInstance();
     public boolean setupEconomy() {
@@ -49,6 +51,7 @@ public class DropperPlugin extends JavaPlugin {
         worldGuard = (WorldGuardPlugin) this.getServer().getPluginManager().getPlugin("WorldGuard");
 
         setInstance(this);
+        this.bossBar = new BossBar();
         setGame(new Game());
         BukkitCommandManager<CommandSender> manager = BukkitCommandManager.create(this);
 

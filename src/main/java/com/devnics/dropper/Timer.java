@@ -13,38 +13,16 @@ import java.util.UUID;
 public class Timer extends BukkitRunnable {
 
     private DropperPlugin plugin = DropperPlugin.getInstance();
-    private int countdown = 60 * 10;
-    private int initial = 60 * 10;
-    private BossBar bossBar;
-
-    public Timer() {
-        this.bossBar = Bukkit.createBossBar(
-                ChatColor.YELLOW + "Game has begun.",
-                BarColor.GREEN,
-                BarStyle.SOLID
-        );
-
-        for (UUID uuid: this.plugin.getGame().getPlayers()) {
-            Player player = Bukkit.getPlayer(uuid);
-
-            if (player == null) continue;
-
-            this.bossBar.addPlayer(player);
-        }
-    }
+    private int countdown = 10;
 
     @Override
     public void run() {
 
         if (countdown == 0) {
-            this.bossBar.removeAll();
+            this.plugin.bossBar.remove();
             this.plugin.getGame().nextStage();
             this.cancel();
             return;
-        }
-
-        if (countdown % 60 == 0) {
-            this.bossBar.setProgress((initial / countdown) / 1000);
         }
 
         for (UUID uuid: this.plugin.game.getPlayers()) {
@@ -52,11 +30,9 @@ public class Timer extends BukkitRunnable {
 
             if (player == null) continue;
 
-            String a = ChatColor.YELLOW + Integer.toString(Math.round(this.countdown / 60)) + "m remaining";
+            String a = ChatColor.YELLOW + Integer.toString(this.countdown) + "m remaining";
 
-            if (a == this.bossBar.getTitle()) continue;
-
-            this.bossBar.setTitle(a);
+            this.plugin.bossBar.setTitle(a);
         }
         countdown = countdown - 1;
     }

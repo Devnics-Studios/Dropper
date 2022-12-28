@@ -62,7 +62,7 @@ public class Game {
         this.currentArena = arena;
         this.timer = new Timer();
 
-        this.timer.runTaskTimer(this.plugin, 20, 20);
+        this.timer.runTaskTimer(this.plugin, 0, 20 * 60);
 
         ConfigurationSection section =  this.plugin.getConfig().getConfigurationSection("arenas." + arena);
 
