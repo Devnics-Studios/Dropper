@@ -77,6 +77,7 @@ public class Game {
             teleportToSpawn(player);
             preparePlayer(player);
             player.sendMessage(
+                    "",
                     DropperPlugin.Color("&6&lDropper Minigame"),
                     "",
                     DropperPlugin.Color("&fThere are 3 possible goals you can land on."),
@@ -164,10 +165,6 @@ public class Game {
                 10,
                 20 * 5,
                 20 * 5
-        );
-        player.sendMessage(
-                DropperPlugin.Color("&7Congratulations, you won &d{} &7coins."),
-                DropperPlugin.Color("&eYou can retry the dropper if you wish to, but your coins will reset.")
         );
 
     }
