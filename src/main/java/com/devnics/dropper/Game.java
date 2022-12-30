@@ -79,6 +79,7 @@ public class Game {
             player.sendMessage(
                     "",
                     DropperPlugin.Color("&6&lDropper Minigame"),
+                    "&7&oNow playing on: &e{arena}".replace("{arena}", arena),
                     "",
                     DropperPlugin.Color("&fThere are 3 possible goals you can land on."),
                     DropperPlugin.Color("&2&lEmerald &7-> &e" + section.getInt("emerald-points")),
