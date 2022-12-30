@@ -28,8 +28,8 @@ public class DropperCommand extends BaseCommand {
         this.plugin.saveConfig();
 
         player.sendMessage(
-                ChatColor.GREEN + "Created arena {}, please use WorldGuard and create a region named {}"
-                        .replace("{}", ChatColor.YELLOW + name + ChatColor.GREEN)
+                DropperPlugin.Color("&8[&6Devnics&8] &aCreated arena &d{}")
+                        .replace("{}", name)
         );
     }
 
@@ -41,8 +41,8 @@ public class DropperCommand extends BaseCommand {
         this.plugin.saveConfig();
 
         player.sendMessage(
-                ChatColor.GREEN + "Set arena spawn for {} at your current co-ordinates."
-                        .replace("{}", ChatColor.YELLOW + name + ChatColor.GREEN)
+                DropperPlugin.Color("&8[&6Devnics&8] &aSet the arena spawn for &d{}")
+                        .replace("{}", name)
         );
     }
 
@@ -53,13 +53,19 @@ public class DropperCommand extends BaseCommand {
         this.plugin.getConfig().set("arenas." + arena + ".diamond-points", DiamondPoints);
         this.plugin.getConfig().set("arenas." + arena + ".iron-points", IronPoints);
         this.plugin.saveConfig();
-        sender.sendMessage(ChatColor.GREEN + "Successfully set points.");
+
+        sender.sendMessage(
+                DropperPlugin.Color("&8[&6Devnics&8] &aSet the points for &d{arena} &a->").replace("{arena}", arena),
+                DropperPlugin.Color("&a&lEmerald &7-> &e" + EmeraldPoints),
+                DropperPlugin.Color("&b&Diamond &7-> &e" + DiamondPoints),
+                DropperPlugin.Color("&f&lEmerald &7-> &e" + IronPoints)
+        );
     }
 
     @SubCommand("reset")
     public void ResetPlayer(Player player) {
         this.plugin.getGame().reset(player);
-        this.plugin.getGame().tp(player);
+        this.plugin.getGame().teleportToSpawn(player);
     }
     @SubCommand("join")
     public void JoinGame(Player player) {
@@ -70,6 +76,10 @@ public class DropperCommand extends BaseCommand {
         this.plugin.bossBar.addPlayer(player);
 
         player.teleport(world.getSpawnLocation());
+
+        player.sendMessage(
+                DropperPlugin.Color("&8[&6Devnics&8] &7You are now in the waiting lobby for &bDropper")
+        );
     }
 
     @SubCommand("setwallmaterial")
@@ -79,9 +89,9 @@ public class DropperCommand extends BaseCommand {
         this.plugin.saveConfig();
 
         player.sendMessage(
-                ChatColor.GREEN + "Set arena material for {1} to {2}"
-                        .replace("{1}", ChatColor.YELLOW + arena + ChatColor.GREEN)
-                        .replace("{2}", ChatColor.YELLOW + material.name() + ChatColor.GREEN)
+                DropperPlugin.Color("&8[&6Devnics&8] &aSet wall material to &d{} &afor &d{arena}")
+                        .replace("{}", material.name())
+                        .replace("{arena}", arena)
         );
     }
     @SubCommand("start")
@@ -98,14 +108,23 @@ public class DropperCommand extends BaseCommand {
                keys.iterator().next()
         );
     }
-    @SubCommand("setarenawait")
+    @SubCommand("setwinnerarea")
     @Permission("dropper.admin")
-    public void SetWaitArena(Player player) {
+    public void setwinnerarea(Player player) {
         this.plugin.getConfig().set("arena-wait", player.getLocation());
         this.plugin.saveConfig();
 
         player.sendMessage(
-                ChatColor.GREEN + "Set arena waiting area location"
+                DropperPlugin.Color("&8[&6Devnics&8] &aSet the area for winners.")
+        );
+    }
+
+    @SubCommand("next")
+    @Permission("dropper.admin")
+    public void next(Player player) {
+        this.plugin.getGame().nextStage();
+        player.sendMessage(
+                DropperPlugin.Color("&8[&6Devnics&8] &cMoving to next stage..")
         );
     }
 }

@@ -33,6 +33,13 @@ public class Timer extends BukkitRunnable {
             String a = ChatColor.YELLOW + Integer.toString(this.countdown) + "m remaining";
 
             this.plugin.bossBar.setTitle(a);
+
+            if (countdown <= 5 && countdown % 2 != 0) {
+                player.sendMessage(
+                        DropperPlugin.Color("&cGame ending in &b{} &cminutes!")
+                                .replace("{}", Integer.toString(countdown))
+                );
+            }
         }
         countdown = countdown - 1;
     }

@@ -66,8 +66,6 @@ public class Game {
 
         ConfigurationSection section =  this.plugin.getConfig().getConfigurationSection("arenas." + arena);
 
-        Location location = section.getLocation("spawn");
-
         for (UUID playerUUID: this.players) {
             Player player = Bukkit.getPlayer(playerUUID);
 
@@ -76,14 +74,17 @@ public class Game {
                 continue;
             }
 
-            player.teleport(location);
+            teleportToSpawn(player);
             preparePlayer(player);
-            player.sendTitle(
-                    ChatColor.GREEN + "" + ChatColor.BOLD + "GO!",
+            player.sendMessage(
+                    DropperPlugin.Color("&6&lDropper Minigame"),
                     "",
-                    10,
-                    20 * 5,
-                    20 * 5
+                    DropperPlugin.Color("&fThere are 3 possible goals you can land on."),
+                    DropperPlugin.Color("&2&lEmerald &7-> &e" + section.getInt("emerald-points")),
+                    DropperPlugin.Color("&b&lDiamond &7-> &e" + section.getInt("diamond-points")),
+                    DropperPlugin.Color("&f&lIron &7-> &e" + section.getInt("iron-points")),
+                    "",
+                    DropperPlugin.Color("&dYou can keep trying after winning, but your coins will reset!")
             );
 
         }
@@ -96,12 +97,28 @@ public class Game {
     public void nextStage() {
         String arena = this.getNextArena();
 
-        if (arena == "done") {
+        if (arena.equals("done")) {
             for (UUID plu: this.getPlayers()) {
                 Player player = Bukkit.getPlayer(plu);
 
                 if (player != null) {
                     Bukkit.dispatchCommand(player, "spawn");
+                    player.sendMessage(
+                            "",
+                            DropperPlugin.Color("&c&lGame Ended"),
+                            "",
+                            DropperPlugin.Color("&fThank you for participating."),
+                            DropperPlugin.Color("&6Devnics &fwishes you a pleasent day!"),
+                            ""
+                    );
+                    this.plugin.economy.depositPlayer(player, 20);
+                    player.sendTitle(
+                            ChatColor.GREEN + "Participation Reward",
+                            ChatColor.YELLOW + "$20",
+                            10,
+                            20 * 3,
+                            10
+                    );
                 }
             }
             this.players = new ArrayList<>();
@@ -114,12 +131,7 @@ public class Game {
         startGame(arena);
     }
     public void fail(Player player) {
-
-        ConfigurationSection section =  this.plugin.getConfig().getConfigurationSection("arenas." + this.currentArena);
-
-        Location location = section.getLocation("spawn");
-
-        player.teleport(location);
+        teleportToSpawn(player);
     }
 
     public void succeed(Player player, Block block) {
@@ -140,14 +152,23 @@ public class Game {
         this.plugin.economy.depositPlayer(player.getName(), points);
         this.scores.put(player.getUniqueId(), points);
 
+        Bukkit.broadcastMessage(
+                DropperPlugin.Color("&e{} &7completed the dropper and won &d{c} &7coins!")
+                        .replace("{}", player.getName())
+                        .replace("{c}", Integer.toString(points))
+        );
+
         player.sendTitle(
-                ChatColor.GREEN + "" + ChatColor.BOLD + "You won " + ChatColor.YELLOW + Integer.toString(points) + ChatColor.GREEN + " points!",
+                ChatColor.YELLOW + "+$" + Integer.toString(points),
                 "",
                 10,
                 20 * 5,
                 20 * 5
         );
-
+        player.sendMessage(
+                DropperPlugin.Color("&7Congratulations, you won &d{} &7coins."),
+                DropperPlugin.Color("&eYou can retry the dropper if you wish to, but your coins will reset.")
+        );
 
     }
 
@@ -158,7 +179,7 @@ public class Game {
         this.scores.put(player.getUniqueId(), 0);
     }
 
-    public void tp(Player player) {
+    public void teleportToSpawn(Player player) {
         ConfigurationSection section =  this.plugin.getConfig().getConfigurationSection("arenas." + this.currentArena);
 
         Location location = section.getLocation("spawn");

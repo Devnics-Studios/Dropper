@@ -8,6 +8,7 @@ import dev.triumphteam.cmd.bukkit.BukkitCommandManager;
 import lombok.Getter;
 import lombok.Setter;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -70,5 +71,7 @@ public class DropperPlugin extends JavaPlugin {
     @Override
     public void onDisable() {}
 
-
+    public static String Color(String msg) {
+        return ChatColor.translateAlternateColorCodes('&', msg);
+    }
 }
